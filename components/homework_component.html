@@ -127,16 +127,24 @@
   </ol>
 </div>
 
+
+
+
+
 <div id="app">
-  <select name="" id="" class="form-control mb-3">
-    <option value="">--- 請選擇城市 ---</option>
+  <select name="" id="" class="form-control mb-3" v-model="filter" @change="selectCity">
+    <option disabled value="">--- 請選擇城市 ---</option>
+    <!-- <option :value="item.County" v-for="item in data">{{ item.County }}</option> -->
+    <option :value="item" v-for="(item, index) in location" :key="index">{{ item }}</option>
+   
   </select>
-  <div>
+ 
+  <!-- <div>
     <h4>關注城市</h4>
     <div class="card-columns">
       <div class="card status-aqi2">
         <div class="card-header">苗栗縣 - 三義
-          <a href="#" class="float-right"><i class="fas fa-star"></i></a>
+          <a href="#" class="float-right"><i class="fas fa-star" ></i></a>
         </div>
         <div class="card-body">
           <ul class="list-unstyled">
@@ -148,27 +156,88 @@
         </div>
       </div>
     </div>
+  </div> -->
+  <div class="card-columns">
+      <airtagcomponent :airdata="item" v-for="(item, index)  in stared"  @addFavor="addFavorLocationMethod" :key="item.SiteName"> 
+      </aircomponent>
   </div>
-  
   <hr>
   <div class="card-columns">
-    <div class="card status-aqi2">
-      <div class="card-header">苗栗縣 - 三義
-        <a href="#" class="float-right"><i class="far fa-star"></i></a>
-      </div>
-      <div class="card-body">
-        <ul class="list-unstyled">
-          <li>AQI 指數: 54</li>
-          <li>PM2.5: 8</li>
-          <li>說明: 普通</li>
-        </ul>
-      2018-05-20 16:00
-      </div>
-    </div>
+      <airtagcomponent :airdata="item" v-for="(item, index)  in getDataComputed" v-on:activeFilterLocation="getDataComputed" :key="item.SiteName"> 
+        <!-- v-if="item.AQI" -->
+      </aircomponent>
   </div>
 </div>
 
+
+<!--x template -->
+<script type="text/x-template" id="airtemplate">
+  <!-- //注意如果沒放<dive class="card status-aqi2">這個tag格式會不對，下面的資料會初步來，很難debug查驗，無錯誤訊息 -->
+  <div class="card status-aqi2" :class="airClass">
+    <div class="card-header"> {{air.County}} - {{air.SiteName}}
+      <a href="#" class="float-right"  @click.prevent="addFavorLocation(air)">
+        <i class="far fa-star"></i>
+      </a>
+    </div>
+    <div class="card-body">
+      <ul class="list-unstyled">
+        <li>AQI指數: {{air.AQI}}</li>
+        <li>PM2.5: {{air['PM2.5']}}</li>
+        <li>說明: {{air.Status}}</li>
+      </ul>
+      {{air.PublishTime}}
+    </div>
+  </div>
+
+</script>
+
 <script>
+
+Vue.component('airtagcomponent',{
+  // props:['airdata'],
+  props:{
+      airdata:{}
+      // airdata:{},
+      // startedcomponent:[]
+  },
+  template:'#airtemplate',
+  data: function(){
+    return {
+       air: this.airdata       
+    }
+  },
+  methods:{
+    addFavorLocation(item){
+      this.$emit('addFavor')
+    }
+  },
+  computed:{
+    airClass: function(){
+      switch ( this.airdata.Status) {
+        case '普通':
+          return 'status-aqi2';
+          break;
+        case '對敏感族群不健康':
+          return'status-aqi3';
+          break;
+        case '對所有族群不健康':
+          return 'status-aqi4';
+          break;
+        case '非常不健康':
+          return'status-aqi5';
+          break;
+        case '危害':
+          return'status-aqi6';
+          break;
+        default:
+          return 'status-aqi1';
+          break;
+      }
+    }
+  }
+})
+
+
 // API 來源
 // https://opendata.epa.gov.tw/Data/Contents/AQI/
 
@@ -177,7 +246,14 @@ var app = new Vue({
   data: {
     data: [],
     location: [],
-    stared: [],
+    stared: [{
+      County:'',
+      SiteName:'',
+      AQI:'',
+      'PM2.5':'',
+      Status:'',
+      PublishTime:''
+    }],
     filter: '',
   },
   // 請在此撰寫 JavaScript
@@ -189,9 +265,49 @@ var app = new Vue({
       // 使用 jQuery ajax
       $.get(api).then(function( response ) {
         vm.data = response;
+        var temp=[];
         console.log(response)
+        vm.location = vm.data.forEach(element => {
+          if(!temp.includes(element.County))
+            temp.push(element.County);
+        });
+        vm.location = temp;
+        console.log(temp)
+
       });
     },
+    selectCity(){
+      this.$emit('activeFilterLocation')
+    },
+    addFavorLocationMethod(item){
+      var vm = this
+      vm.stared.push(item)
+    }
+  },
+  created: function() {
+    this.getData()
+  },
+  computed:{
+    getDataComputed(){
+      var vm = this
+      var tempData = [];
+      var selectLocation = vm.filter
+      if(vm.filter !== ''){
+        vm.data.forEach(e =>{
+          if (vm.filter === e.County) {
+            tempData.push(e);
+          }
+        })
+        // tempData = vm.data.filter(function(item){
+        //     item.County.match(vm.filter)
+        // })
+        console.log(tempData)
+        return tempData;
+
+      }
+      return this.data;
+    }
+    
   }
 });
 </script>

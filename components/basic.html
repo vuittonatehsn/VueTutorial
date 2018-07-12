@@ -127,11 +127,17 @@
   <table class="table">
     <thead>
     </thead>
-    <tbody>
+    <tbody> 
       <tr is="row-conponent" v-for="(item, key) in data" :person="item" :key="key" ></tr>
     </tbody>
   </table>
+
+<!-- 另一種方式 -->
+<row-conponent v-for="(item, key) in data" :person="item" :key="key"></row-conponent>
+
+
 </div>
+
 <script type="text/x-template" id="rowComponentTemplate">
   <tr>
       <td>{{ person.name }}</td>
@@ -139,8 +145,16 @@
       <td>{{ person.icash }}</td>
     </tr>
 </script>
+
 <script>
-  var child = {
+
+
+Vue.component('row-conponent',{
+  props:['person'],
+  template: '#rowComponentTemplate'
+})
+
+var child = {
     props:['person'],
     template: '#rowComponentTemplate'
   }

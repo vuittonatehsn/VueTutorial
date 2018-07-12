@@ -123,7 +123,7 @@
 <div id="app">
   <h2>使用 is 顯示單一組件</h2>
   <primary-component :data="item"></primary-component>
-
+  <div is="primary-component" :data="item"></div>
   <h2 class="mt-3">使用 is 動態切換組件</h2>
   <ul class="nav nav-pills">
     <li class="nav-item">
@@ -132,10 +132,13 @@
     <li class="nav-item">
       <a class="nav-link" :class="{'active': current == 'danger-component'}" href="#" @click.prevent="current = 'danger-component'">紅色元件</a>
     </li>
+    
   </ul>
+  <!-- 這邊是要顯示的內容 -->
   <div class="mt-3">
-    <primary-component :data="item" v-if="current === 'primary-component'"></primary-component>
-    <danger-component :data="item" v-if="current === 'danger-component'"></danger-component>
+    <!-- <primary-component :data="item" v-if="current === 'primary-component'"></primary-component>
+    <danger-component :data="item" v-if="current === 'danger-component'"></danger-component> -->
+    <div :is="current" v-bind:data="item"></div>
   </div>
 </div>
 
