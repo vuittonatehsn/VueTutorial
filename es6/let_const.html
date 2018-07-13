@@ -149,10 +149,27 @@ var mom = '老媽';
 // 額外問題，不使用 let，上述答案如何解答
 // for (var i = 0; i < 10; i++) {
 //   console.log(i);
-//   setTimeout(function () {
+//   setTimeout(function () { //這是一種非同步的使用
 //     console.log('這執行第' + i + '次');
 //   }, 10);
 // }
+// A:#6
+// for (var i = 0; i < 10; i++) {
+//   console.log(i);
+//   (function (i) {
+//       setTimeout(function () {
+//       console.log('這執行第' + i + '次');
+//     }, 0);
+//   })(i)
+// }
+for (var i = 0; i < 10; i++) {
+     console.log(i);
+     
+      setTimeout(function () {
+        console.log('這執行第' + i + '次');
+      }(), 10);
+     
+ }
 </script> 
         </div>
       </div>

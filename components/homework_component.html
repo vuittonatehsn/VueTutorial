@@ -132,39 +132,25 @@
 
 
 <div id="app">
-  <select name="" id="" class="form-control mb-3" v-model="filter" @change="selectCity">
+  <select name="" id="" class="form-control mb-3" v-model="filter" @change="getDataComputed">
     <option disabled value="">--- 請選擇城市 ---</option>
     <!-- <option :value="item.County" v-for="item in data">{{ item.County }}</option> -->
     <option :value="item" v-for="(item, index) in location" :key="index">{{ item }}</option>
    
   </select>
- 
-  <!-- <div>
-    <h4>關注城市</h4>
-    <div class="card-columns">
-      <div class="card status-aqi2">
-        <div class="card-header">苗栗縣 - 三義
-          <a href="#" class="float-right"><i class="fas fa-star" ></i></a>
-        </div>
-        <div class="card-body">
-          <ul class="list-unstyled">
-            <li>AQI 指數: 54</li>
-            <li>PM2.5: 8</li>
-            <li>說明: 普通</li>
-          </ul>
-          2018-05-20 16:00
-        </div>
-      </div>
-    </div>
-  </div> -->
+
   <div class="card-columns">
-      <airtagcomponent :airdata="item" v-for="(item, index)  in stared"  @addFavor="addFavorLocationMethod" :key="item.SiteName"> 
+      <airtagcomponent :airdata="item" v-for="(item, index)  in stared"  
+        @editfavor="removeFavorLocationMethod(index)" :key="item.SiteName"
+        :star-class="'fas'"> 
       </aircomponent>
   </div>
   <hr>
   <div class="card-columns">
-      <airtagcomponent :airdata="item" v-for="(item, index)  in getDataComputed" v-on:activeFilterLocation="getDataComputed" :key="item.SiteName"> 
-        <!-- v-if="item.AQI" -->
+      <airtagcomponent :airdata="item" v-for="(item, index)  in getDataComputed" 
+      @editfavor="addFavorLocationMethod(item)" :key="item.SiteName"
+      :star-class="'far'"> 
+         <!-- v-on:activeFilterLocation="getDataComputed" -->
       </aircomponent>
   </div>
 </div>
@@ -176,7 +162,7 @@
   <div class="card status-aqi2" :class="airClass">
     <div class="card-header"> {{air.County}} - {{air.SiteName}}
       <a href="#" class="float-right"  @click.prevent="addFavorLocation(air)">
-        <i class="far fa-star"></i>
+        <i class="fa-star" :class="starClass"></i>
       </a>
     </div>
     <div class="card-body">
@@ -194,22 +180,33 @@
 <script>
 
 Vue.component('airtagcomponent',{
-  // props:['airdata'],
+  // props:['airdata', 'starClass'],
   props:{
-      airdata:{}
-      // airdata:{},
-      // startedcomponent:[]
+      airdata:{},
+      starClass: ''
   },
   template:'#airtemplate',
   data: function(){
     return {
-       air: this.airdata       
-    }
+       air: this.airdata,
+       //這方法更簡短，可以取代airClass
+      //  cardStatus: {
+      //   'status-aqi2': this.data.Status === '普通',
+      //   'status-aqi3': this.data.Status === '對敏感族群不健康',
+      //   'status-aqi4': this.data.Status === '對所有族群不健康',
+      //   'status-aqi5': this.data.Status === '非常不健康',
+      //   'status-aqi6': this.data.Status === '危害',
+      // }       
+    }    
   },
   methods:{
     addFavorLocation(item){
-      this.$emit('addFavor')
-    }
+      this.$emit("editfavor")
+    },
+    removeFavorLocation(index){
+      this.$emit("editfavor")
+    },
+    
   },
   computed:{
     airClass: function(){
@@ -247,12 +244,12 @@ var app = new Vue({
     data: [],
     location: [],
     stared: [{
-      County:'',
-      SiteName:'',
-      AQI:'',
-      'PM2.5':'',
-      Status:'',
-      PublishTime:''
+      County:'default',
+      SiteName:'default',
+      AQI:'default',
+      'PM2.5':'0.0',
+      Status:'default',
+      PublishTime:'2018-07-12'
     }],
     filter: '',
   },
@@ -273,16 +270,33 @@ var app = new Vue({
         });
         vm.location = temp;
         console.log(temp)
-
+        //其他學員提供的取出本機資料庫
+        vm.stared = JSON.parse(localStorage.getItem('staredData')) || [];
       });
     },
-    selectCity(){
-      this.$emit('activeFilterLocation')
-    },
+    // selectCity(){
+    //   this.$emit('activeFilterLocation')
+    // },
     addFavorLocationMethod(item){
       var vm = this
       vm.stared.push(item)
-    }
+      //其他學員提供的寫入本機資料庫
+      let jStared = JSON.stringify(vm.stared);
+      localStorage.setItem('staredData', jStared);
+    },
+    removeFavorLocationMethod(index){
+      var vm = this
+      //vm.stared.delete(index)
+      // var index = vm.stared.findIndex(function(star) {
+      //   return star === item.SiteName;
+      // });
+      this.stared.splice(index, 1);
+      //其他學員提供的刪除本機資料庫
+      let jStared = JSON.stringify(vm.stared);
+      localStorage.setItem('staredData', jStared);
+    },
+
+    
   },
   created: function() {
     this.getData()
